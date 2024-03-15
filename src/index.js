@@ -108,7 +108,7 @@ async function slackWebhookHandler(request) {
 		switch (parsed.msg) {
 			case 'temperature':
 			case 'temp':
-				const response = await getTemperature(GOVEE_API_KEY);
+				const response = await getThermometer(GOVEE_API_KEY);
 				if (response.ok) {
 					const result = await response.json();
 					const sensorTemperature = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
