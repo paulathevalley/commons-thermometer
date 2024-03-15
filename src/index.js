@@ -10,22 +10,22 @@ addEventListener('fetch', (event) => {
 	event.respondWith(slackWebhookHandler(event.request));
 });
 
-export default {
-	// The scheduled handler is invoked at the interval set in our wrangler.toml's
-	// [[triggers]] configuration.
-	async scheduled(event, env, ctx) {
-		const response = await getThermometer(env.GOVEE_API_KEY);
-		let wasSuccessful = response.ok ? 'success' : 'fail';
-		const result = await response.json();
-		console.log('result', JSON.stringify(result, null, 4));
+// export default {
+// 	// The scheduled handler is invoked at the interval set in our wrangler.toml's
+// 	// [[triggers]] configuration.
+// 	async scheduled(event, env, ctx) {
+// 		const response = await getThermometer(env.GOVEE_API_KEY);
+// 		let wasSuccessful = response.ok ? 'success' : 'fail';
+// 		const result = await response.json();
+// 		console.log('result', JSON.stringify(result, null, 4));
 
-		const scheduledTime = new Date(event.scheduledTime).toLocaleString(['en-US'], {
-			timeZone: 'America/Los_Angeles',
-		});
+// 		const scheduledTime = new Date(event.scheduledTime).toLocaleString(['en-US'], {
+// 			timeZone: 'America/Los_Angeles',
+// 		});
 
-		console.log(`trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${scheduledTime}`);
-	},
-};
+// 		console.log(`trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${scheduledTime}`);
+// 	},
+// };
 
 /**
  * simpleResponse generates a simple JSON response
