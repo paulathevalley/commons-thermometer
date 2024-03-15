@@ -1,4 +1,6 @@
-async function getTemperature(API_KEY) {
+const HOSTNAME = 'https://openapi.api.govee.com';
+
+async function getThermometer(key) {
 	const THERMOMETER_SKU = 'H5179';
 	const THERMOMETER_DEVICE = 'AE:3C:18:CE:B9:51:BC:6D';
 
@@ -6,7 +8,7 @@ async function getTemperature(API_KEY) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'Govee-API-Key': API_KEY,
+			'Govee-API-Key': key || GOVEE_API_KEY,
 		},
 		body: JSON.stringify({
 			requestId: 'uuid',
@@ -20,4 +22,8 @@ async function getTemperature(API_KEY) {
 	return response;
 }
 
-export default getTemperature;
+function getFahrenheitFromSensor(input) {
+	return 0.02004 * input + 31.0824;
+}
+
+export { getThermometer, getFahrenheitFromSensor };
