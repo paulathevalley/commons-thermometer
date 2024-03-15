@@ -1,3 +1,4 @@
+// Govee API for Thermometer
 const HOSTNAME = 'https://openapi.api.govee.com';
 
 async function getTemperature(API_KEY) {
