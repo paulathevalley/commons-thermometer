@@ -22,8 +22,9 @@ async function getThermometer(key) {
 	return response;
 }
 
-function getFahrenheitFromSensor(input) {
-	return 0.02004 * input + 31.0824;
+function getFahrenheitFromSensor(payload) {
+	const sensor = payload.capabilities.find((c) => c.instance === 'sensorTemperature');
+	return 0.02004 * sensor.state.value + 31.0824;
 }
 
 export { getThermometer, getFahrenheitFromSensor };

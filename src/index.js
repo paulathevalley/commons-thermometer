@@ -1,31 +1,51 @@
 import { getThermometer, getFahrenheitFromSensor } from './utils';
+// import post from './alertChannel.js';
+// const post = require('./alertChannel.js');
 
 // SLACK_TOKEN is used to authenticate requests are from Slack.
 // Keep this value secret.
 let BOT_NAME = 'Thermo-Bot 🌡️';
+let TOO_HOT = 85;
+let TOO_COLD = 40;
+let GARDEN_CHANNEL_ID = 'CD2SKK01Y';
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
 
+// Using Service Worker syntax
+// more: https://developers.cloudflare.com/workers/reference/migrate-to-module-workers/
 addEventListener('fetch', (event) => {
 	event.respondWith(slackWebhookHandler(event.request));
 });
 
-// export default {
-// 	// The scheduled handler is invoked at the interval set in our wrangler.toml's
-// 	// [[triggers]] configuration.
-// 	async scheduled(event, env, ctx) {
-// 		const response = await getThermometer(env.GOVEE_API_KEY);
-// 		let wasSuccessful = response.ok ? 'success' : 'fail';
-// 		const result = await response.json();
-// 		console.log('result', JSON.stringify(result, null, 4));
+addEventListener('scheduled', (event) => {
+	event.waitUntil(checkThermometer(event));
+});
 
-// 		const scheduledTime = new Date(event.scheduledTime).toLocaleString(['en-US'], {
-// 			timeZone: 'America/Los_Angeles',
-// 		});
+// The scheduled handler is invoked at the interval set in our wrangler.toml's
+// [[triggers]] configuration.
+async function checkThermometer(event) {
+	const response = await getThermometer(GOVEE_API_KEY);
+	let wasSuccessful = response.ok ? 'success' : 'fail';
 
-// 		console.log(`trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${scheduledTime}`);
-// 	},
-// };
+	if (response.ok) {
+		const result = await response.json();
+		const fahrenheit = getFahrenheitFromSensor(result.payload);
+		if (fahrenheit > TOO_HOT) {
+			console.log('too hot!', fahrenheit);
+			// node --env-file=.env src/alertChannel.js
+		} else if (fahrenheit < TOO_COLD) {
+			console.log('too cold!', fahrenheit);
+		} else {
+			console.log('temperature within range');
+		}
+	}
+
+	const scheduledTime = new Date(event.scheduledTime).toLocaleString(['en-US'], {
+		timeZone: 'America/Los_Angeles',
+	});
+
+	console.log(`trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${scheduledTime}`);
+}
 
 /**
  * simpleResponse generates a simple JSON response
@@ -73,6 +93,13 @@ function slackResponse(text) {
 		attachments: [],
 	};
 
+	/* error messages
+	{
+  "response_type": "ephemeral",
+  "text": "Sorry, slash commando, that didn't work. Please try again."
+}
+	*/
+
 	return new Response(JSON.stringify(content), {
 		headers: jsonHeaders,
 		status: 200,
@@ -111,9 +138,7 @@ async function slackWebhookHandler(request) {
 				const response = await getThermometer(GOVEE_API_KEY);
 				if (response.ok) {
 					const result = await response.json();
-					const sensorTemperature = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
-					const temperature = sensorTemperature.state.value;
-					const fahrenheit = getFahrenheitFromSensor(temperature);
+					const fahrenheit = getFahrenheitFromSensor(result.payload);
 					line = `Current temperature is ${fahrenheit}F.`;
 				} else {
 					line = `Had trouble connecting to the thermometer...`;
