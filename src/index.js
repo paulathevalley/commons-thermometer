@@ -92,7 +92,7 @@ async function alertChannel(temp, condition) {
 async function checkThermometer(event) {
 	// the cron triggers every 5 minutes. we want to check if a message was sent five minutes ago.
 	const MS_PER_MINUTE = 60000;
-	const DURATION_IN_MINUTES = 6;
+	const DURATION_IN_MINUTES = 60;
 	const withinTimeframe = new Date(event.scheduledTime - DURATION_IN_MINUTES * MS_PER_MINUTE);
 	const latestMessage = await fetchMessage(withinTimeframe);
 	if (latestMessage && latestMessage.length) {
@@ -224,10 +224,6 @@ async function slackWebhookHandler(request) {
 				line = `I don’t recognize this. Try 'temperature'.`;
 				break;
 		}
-
-		// let reply = await stockRequest(parsed.msg);
-		// let line = `Current price (*${parsed.stock}*): ? USD $${reply.USD} (Last updated on ${reply.updated}).`;
-
 		return slackResponse(line);
 	} catch (e) {
 		return simpleResponse(200, `Sorry, I had an issue retrieving anything: ${e}`);
