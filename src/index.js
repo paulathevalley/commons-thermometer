@@ -60,10 +60,10 @@ async function alertChannel(temp, condition) {
 	const conversationId = DEBUG_CHANNEL_ID;
 	switch (condition) {
 		case 'hot':
-			text = `<!here> :hot_face: The greenhouse is ${temp}F`;
+			text = `<!here> :hot_face: The greenhouse is ${temp}F (will check again in an hour)`;
 			break;
 		case 'cold':
-			text = `<!here> :cold_face: The greenhouse is ${temp}F`;
+			text = `<!here> :cold_face: The greenhouse is ${temp}F (will check again in an hour)`;
 			break;
 		default:
 			text = `<!here> The greenhouse is ${temp}F`;
