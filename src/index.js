@@ -25,15 +25,16 @@ addEventListener('scheduled', (event) => {
 });
 
 async function alertChannel(temp, condition) {
+	console.log('alert channel!');
 	switch (condition) {
 		case 'hot':
-			text = `:warning: :hot_face: The greenhouse is ${temp}F`;
+			text = `@here :warning: :hot_face: The greenhouse is ${temp}F`;
 			break;
 		case 'cold':
-			text = `:warning: :cold_face: The greenhouse is ${temp}F`;
+			text = `@here :warning: :cold_face: The greenhouse is ${temp}F`;
 			break;
 		default:
-			text = `:warning: The greenhouse is ${temp}F`;
+			text = `@here :warning: The greenhouse is ${temp}F`;
 			break;
 	}
 	try {
@@ -64,12 +65,10 @@ async function checkThermometer(event) {
 		const result = await response.json();
 		const fahrenheit = getFahrenheitFromSensor(result.payload);
 		if (fahrenheit > TOO_HOT) {
-			console.log('too hot!', fahrenheit);
-			alertChannel(fahrenheit, 'hot');
+			await alertChannel(fahrenheit, 'hot');
 			// node --env-file=.env src/alertChannel.js
 		} else if (fahrenheit < TOO_COLD) {
-			console.log('too cold!', fahrenheit);
-			alertChannel(fahrenheit, 'cold');
+			await alertChannel(fahrenheit, 'cold');
 		} else {
 			console.log('temperature within range');
 		}
