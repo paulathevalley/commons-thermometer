@@ -34,7 +34,7 @@ async function fetchMessage(time) {
 		const result = await client.conversations.history({
 			// The token you used to initialize your app
 			token: BOT_USER_OAUTH_TOKEN,
-			channel: DEBUG_CHANNEL_ID,
+			channel: GARDEN_CHANNEL_ID,
 			// In a more realistic app, you may store ts data in a db
 			// latest: ts,
 			bot_id: 'B06PX5XM24C',
@@ -57,7 +57,7 @@ async function fetchMessage(time) {
 
 async function alertChannel(temp, condition) {
 	const client = new SlackAPIClient(BOT_USER_OAUTH_TOKEN, { logLevel: 'debug' });
-	const conversationId = DEBUG_CHANNEL_ID;
+	const conversationId = GARDEN_CHANNEL_ID;
 	switch (condition) {
 		case 'hot':
 			text = `<!here> :hot_face: The greenhouse is ${temp}F (will check again in an hour)`;
