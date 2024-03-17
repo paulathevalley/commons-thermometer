@@ -1,4 +1,6 @@
 import { getThermometer, getFahrenheitFromSensor } from './utils';
+import { SlackAPIClient } from 'slack-web-api-client';
+
 // import post from './alertChannel.js';
 // const post = require('./alertChannel.js');
 
@@ -8,6 +10,7 @@ let BOT_NAME = 'Thermo-Bot 🌡️';
 let TOO_HOT = 85;
 let TOO_COLD = 40;
 let GARDEN_CHANNEL_ID = 'CD2SKK01Y';
+let DEBUG_CHANNEL_ID = 'C054JVDKQJE';
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
 
@@ -21,6 +24,36 @@ addEventListener('scheduled', (event) => {
 	event.waitUntil(checkThermometer(event));
 });
 
+async function alertChannel(temp, condition) {
+	switch (condition) {
+		case 'hot':
+			text = `:warning: :hot_face: The greenhouse is ${temp}F`;
+			break;
+		case 'cold':
+			text = `:warning: :cold_face: The greenhouse is ${temp}F`;
+			break;
+		default:
+			text = `:warning: The greenhouse is ${temp}F`;
+			break;
+	}
+	try {
+		const client = new SlackAPIClient(process.env.BOT_USER_OAUTH_TOKEN);
+		const result = await client.chat.postMessage({
+			text: text,
+			channel: DEBUG_CHANNEL_ID,
+		});
+		console.log(`Successfully send message ${result.ts} in conversation ${conversationId}`);
+	} catch (error) {
+		// Check the code property, and when its a PlatformError, log the whole response.
+		if (error.code === ErrorCode.PlatformError) {
+			console.log(error.data);
+		} else {
+			// Some other error, oh no!
+			console.log('Well, that was unexpected.');
+		}
+	}
+}
+
 // The scheduled handler is invoked at the interval set in our wrangler.toml's
 // [[triggers]] configuration.
 async function checkThermometer(event) {
@@ -32,9 +65,11 @@ async function checkThermometer(event) {
 		const fahrenheit = getFahrenheitFromSensor(result.payload);
 		if (fahrenheit > TOO_HOT) {
 			console.log('too hot!', fahrenheit);
+			alertChannel(fahrenheit, 'hot');
 			// node --env-file=.env src/alertChannel.js
 		} else if (fahrenheit < TOO_COLD) {
 			console.log('too cold!', fahrenheit);
+			alertChannel(fahrenheit, 'cold');
 		} else {
 			console.log('temperature within range');
 		}
@@ -139,7 +174,7 @@ async function slackWebhookHandler(request) {
 				if (response.ok) {
 					const result = await response.json();
 					const fahrenheit = getFahrenheitFromSensor(result.payload);
-					line = `Current temperature is ${fahrenheit}F.`;
+					line = `The greenhouse is currently ${fahrenheit}F.`;
 				} else {
 					line = `Had trouble connecting to the thermometer...`;
 				}

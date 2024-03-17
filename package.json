@@ -12,7 +12,10 @@
 		"start": "wrangler dev"
 	},
 	"devDependencies": {
-		"wrangler": "^3.0.0",
-		"@slack/web-api": "^7.0.2"
+		"@slack/web-api": "^7.0.2",
+		"wrangler": "^3.0.0"
+	},
+	"dependencies": {
+		"slack-web-api-client": "^0.8.2"
 	}
 }
