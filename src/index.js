@@ -24,15 +24,11 @@ addEventListener('scheduled', (event) => {
 	event.waitUntil(checkThermometer(event));
 });
 
-// "user":"U06PE5CJP63"
-// "bot_id":"B06PX5XM24C"
-
-let fetchedMessage;
 const BOT_USER = 'U06PE5CJP63';
 const BOT_ID = 'B06PX5XM24C';
-async function fetchMessage(scheduledTime) {
+async function fetchMessage(time) {
 	const client = new SlackAPIClient(BOT_USER_OAUTH_TOKEN);
-	const scheduledTimeToUnixTimestamp = Math.floor(scheduledTime / 1000);
+	const timeToUnixTimestamp = Math.floor(time / 1000);
 	try {
 		// Call the conversations.history method using the built-in WebClient
 		const result = await client.conversations.history({
@@ -45,7 +41,7 @@ async function fetchMessage(scheduledTime) {
 			// include all metadata
 			include_all_metadata: true,
 			// Only messages after this Unix timestamp will be included in results.
-			oldest: scheduledTimeToUnixTimestamp,
+			oldest: timeToUnixTimestamp,
 			// Limit results
 			// inclusive: true,
 			// limit: 1,
@@ -53,10 +49,8 @@ async function fetchMessage(scheduledTime) {
 
 		const history = result.messages;
 		const botHistory = history.filter((msg) => msg.bot_id === BOT_ID && msg.text.includes('<!here>'));
-
-		console.log('fetched!!!!', JSON.stringify(botHistory, null, 4));
+		return botHistory;
 	} catch (error) {
-		console.log('error');
 		console.error(error);
 	}
 }
@@ -64,7 +58,6 @@ async function fetchMessage(scheduledTime) {
 async function alertChannel(temp, condition) {
 	const client = new SlackAPIClient(BOT_USER_OAUTH_TOKEN, { logLevel: 'debug' });
 	const conversationId = DEBUG_CHANNEL_ID;
-	console.log('alert channel!');
 	switch (condition) {
 		case 'hot':
 			text = `<!here> :hot_face: The greenhouse is ${temp}F`;
@@ -83,7 +76,6 @@ async function alertChannel(temp, condition) {
 		});
 		console.log(`Successfully send message ${result.ts} in conversation ${conversationId}`);
 	} catch (error) {
-		console.log('error', error);
 		// Check the code property, and when its a PlatformError, log the whole response.
 		// if (error.code === ErrorCode.PlatformError) {
 		// console.log(error.data);
@@ -91,6 +83,7 @@ async function alertChannel(temp, condition) {
 		// Some other error, oh no!
 		console.log('Well, that was unexpected.');
 		// }
+		console.log(error);
 	}
 }
 
@@ -99,30 +92,35 @@ async function alertChannel(temp, condition) {
 async function checkThermometer(event) {
 	// the cron triggers every 5 minutes. we want to check if a message was sent five minutes ago.
 	const MS_PER_MINUTE = 60000;
-	const sixMinutesAgo = new Date(event.scheduledTime - 6 * MS_PER_MINUTE);
-	const latestMessage = await fetchMessage(sixMinutesAgo);
-	console.log('fetch message!!', latestMessage);
+	const DURATION_IN_MINUTES = 6;
+	const withinTimeframe = new Date(event.scheduledTime - DURATION_IN_MINUTES * MS_PER_MINUTE);
+	const latestMessage = await fetchMessage(withinTimeframe);
+	if (latestMessage && latestMessage.length) {
+		// our bot sent a message within our specified timeframe; do not send another
+		console.log('skipping thermometer check');
+	} else {
+		const response = await getThermometer(GOVEE_API_KEY);
+		let wasSuccessful = response.ok ? 'success' : 'fail';
 
-	const response = await getThermometer(GOVEE_API_KEY);
-	let wasSuccessful = response.ok ? 'success' : 'fail';
-
-	if (response.ok) {
-		const result = await response.json();
-		const fahrenheit = getFahrenheitFromSensor(result.payload);
-		if (fahrenheit > TOO_HOT) {
-			await alertChannel(fahrenheit, 'hot');
-		} else if (fahrenheit < TOO_COLD) {
-			await alertChannel(fahrenheit, 'cold');
-		} else {
-			console.log('temperature within range');
+		if (response.ok) {
+			const result = await response.json();
+			const fahrenheit = getFahrenheitFromSensor(result.payload);
+			if (fahrenheit > TOO_HOT) {
+				await alertChannel(fahrenheit, 'hot');
+			} else if (fahrenheit < TOO_COLD) {
+				await alertChannel(fahrenheit, 'cold');
+			} else {
+				console.log('temperature within range');
+			}
 		}
+		console.log(`trigger fired at ${event.cron} thermometer check: ${wasSuccessful}`);
 	}
 
-	const scheduledTime = new Date(event.scheduledTime).toLocaleString(['en-US'], {
+	const localTime = new Date(event.scheduledTime).toLocaleString(['en-US'], {
 		timeZone: 'America/Los_Angeles',
 	});
 
-	console.log(`trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${scheduledTime}`);
+	console.log(`trigger fired at ${event.cron} with local time: ${localTime}`);
 }
 
 /**
