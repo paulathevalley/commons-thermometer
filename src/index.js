@@ -1,5 +1,5 @@
 import { getThermometer, getFahrenheitFromSensor } from './utils';
-import { SlackAPIClient } from 'slack-web-api-client';
+import { SlackAPIClient, ErrorCode } from 'slack-web-api-client';
 
 // import post from './alertChannel.js';
 // const post = require('./alertChannel.js');
@@ -24,27 +24,66 @@ addEventListener('scheduled', (event) => {
 	event.waitUntil(checkThermometer(event));
 });
 
+// "user":"U06PE5CJP63"
+// "bot_id":"B06PX5XM24C"
+
+let fetchedMessage;
+const BOT_USER = 'U06PE5CJP63';
+const BOT_ID = 'B06PX5XM24C';
+async function fetchMessage(scheduledTime) {
+	const client = new SlackAPIClient(BOT_USER_OAUTH_TOKEN);
+	const scheduledTimeToUnixTimestamp = Math.floor(scheduledTime / 1000);
+	try {
+		// Call the conversations.history method using the built-in WebClient
+		const result = await client.conversations.history({
+			// The token you used to initialize your app
+			token: BOT_USER_OAUTH_TOKEN,
+			channel: DEBUG_CHANNEL_ID,
+			// In a more realistic app, you may store ts data in a db
+			// latest: ts,
+			bot_id: 'B06PX5XM24C',
+			// include all metadata
+			include_all_metadata: true,
+			// Only messages after this Unix timestamp will be included in results.
+			oldest: scheduledTimeToUnixTimestamp,
+			// Limit results
+			// inclusive: true,
+			// limit: 1,
+		});
+
+		const history = result.messages;
+		const botHistory = history.filter((msg) => msg.bot_id === BOT_ID && msg.text.includes('<!here>'));
+
+		console.log('fetched!!!!', JSON.stringify(botHistory, null, 4));
+	} catch (error) {
+		console.log('error');
+		console.error(error);
+	}
+}
+
 async function alertChannel(temp, condition) {
+	const client = new SlackAPIClient(BOT_USER_OAUTH_TOKEN, { logLevel: 'debug' });
+	const conversationId = DEBUG_CHANNEL_ID;
 	console.log('alert channel!');
 	switch (condition) {
 		case 'hot':
-			text = `@here :warning: :hot_face: The greenhouse is ${temp}F`;
+			text = `<!here> :hot_face: The greenhouse is ${temp}F`;
 			break;
 		case 'cold':
-			text = `@here :warning: :cold_face: The greenhouse is ${temp}F`;
+			text = `<!here> :cold_face: The greenhouse is ${temp}F`;
 			break;
 		default:
-			text = `@here :warning: The greenhouse is ${temp}F`;
+			text = `<!here> The greenhouse is ${temp}F`;
 			break;
 	}
 	try {
-		const client = new SlackAPIClient(process.env.BOT_USER_OAUTH_TOKEN);
 		const result = await client.chat.postMessage({
 			text: text,
-			channel: DEBUG_CHANNEL_ID,
+			channel: conversationId,
 		});
 		console.log(`Successfully send message ${result.ts} in conversation ${conversationId}`);
 	} catch (error) {
+		console.log('error', error);
 		// Check the code property, and when its a PlatformError, log the whole response.
 		if (error.code === ErrorCode.PlatformError) {
 			console.log(error.data);
@@ -58,6 +97,9 @@ async function alertChannel(temp, condition) {
 // The scheduled handler is invoked at the interval set in our wrangler.toml's
 // [[triggers]] configuration.
 async function checkThermometer(event) {
+	const latestMessage = await fetchMessage(event.scheduledTime);
+	console.log('fetch message!!', latestMessage);
+
 	const response = await getThermometer(GOVEE_API_KEY);
 	let wasSuccessful = response.ok ? 'success' : 'fail';
 
@@ -66,7 +108,6 @@ async function checkThermometer(event) {
 		const fahrenheit = getFahrenheitFromSensor(result.payload);
 		if (fahrenheit > TOO_HOT) {
 			await alertChannel(fahrenheit, 'hot');
-			// node --env-file=.env src/alertChannel.js
 		} else if (fahrenheit < TOO_COLD) {
 			await alertChannel(fahrenheit, 'cold');
 		} else {
