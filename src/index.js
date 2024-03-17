@@ -1,5 +1,5 @@
 import { getThermometer, getFahrenheitFromSensor } from './utils';
-import { SlackAPIClient, ErrorCode } from 'slack-web-api-client';
+import { SlackAPIClient } from 'slack-web-api-client';
 
 // import post from './alertChannel.js';
 // const post = require('./alertChannel.js');
@@ -85,19 +85,22 @@ async function alertChannel(temp, condition) {
 	} catch (error) {
 		console.log('error', error);
 		// Check the code property, and when its a PlatformError, log the whole response.
-		if (error.code === ErrorCode.PlatformError) {
-			console.log(error.data);
-		} else {
-			// Some other error, oh no!
-			console.log('Well, that was unexpected.');
-		}
+		// if (error.code === ErrorCode.PlatformError) {
+		// console.log(error.data);
+		// } else {
+		// Some other error, oh no!
+		console.log('Well, that was unexpected.');
+		// }
 	}
 }
 
 // The scheduled handler is invoked at the interval set in our wrangler.toml's
 // [[triggers]] configuration.
 async function checkThermometer(event) {
-	const latestMessage = await fetchMessage(event.scheduledTime);
+	// the cron triggers every 5 minutes. we want to check if a message was sent five minutes ago.
+	const MS_PER_MINUTE = 60000;
+	const sixMinutesAgo = new Date(event.scheduledTime - 6 * MS_PER_MINUTE);
+	const latestMessage = await fetchMessage(sixMinutesAgo);
 	console.log('fetch message!!', latestMessage);
 
 	const response = await getThermometer(GOVEE_API_KEY);
