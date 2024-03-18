@@ -97,7 +97,7 @@ async function checkThermometer(event) {
 	const latestMessage = await fetchMessage(withinTimeframe);
 	if (latestMessage && latestMessage.length) {
 		// our bot sent a message within our specified timeframe; do not send another
-		console.log('skipping thermometer check');
+		console.log('skipping thermometer check', latestMessage);
 	} else {
 		const response = await getThermometer(GOVEE_API_KEY);
 		let wasSuccessful = response.ok ? 'success' : 'fail';
@@ -107,6 +107,8 @@ async function checkThermometer(event) {
 			const fahrenheit = getFahrenheitFromSensor(result.payload);
 			if (fahrenheit > TOO_HOT) {
 				await alertChannel(fahrenheit, 'hot');
+			} else if (fahrenheit < TOO_COLD) {
+				console.log('too cold:', fahrenheit);
 			} else {
 				console.log('temperature within range');
 			}
