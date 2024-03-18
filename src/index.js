@@ -10,6 +10,7 @@ let BOT_NAME = 'Thermo-Bot 🌡️';
 let TOO_HOT = 85;
 let TOO_COLD = 40;
 let GARDEN_CHANNEL_ID = 'CD2SKK01Y';
+let GREENHOUSE_CHANNEL_ID = 'C06Q387FJ4A';
 let DEBUG_CHANNEL_ID = 'C054JVDKQJE';
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
@@ -34,7 +35,7 @@ async function fetchMessage(time) {
 		const result = await client.conversations.history({
 			// The token you used to initialize your app
 			token: BOT_USER_OAUTH_TOKEN,
-			channel: GARDEN_CHANNEL_ID,
+			channel: GREENHOUSE_CHANNEL_ID,
 			// In a more realistic app, you may store ts data in a db
 			// latest: ts,
 			bot_id: 'B06PX5XM24C',
@@ -57,7 +58,7 @@ async function fetchMessage(time) {
 
 async function alertChannel(temp, condition) {
 	const client = new SlackAPIClient(BOT_USER_OAUTH_TOKEN, { logLevel: 'debug' });
-	const conversationId = GARDEN_CHANNEL_ID;
+	const conversationId = GREENHOUSE_CHANNEL_ID;
 	switch (condition) {
 		case 'hot':
 			text = `<!here> :hot_face: The greenhouse is ${temp}F`;
