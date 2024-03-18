@@ -60,10 +60,10 @@ async function alertChannel(temp, condition) {
 	const conversationId = GARDEN_CHANNEL_ID;
 	switch (condition) {
 		case 'hot':
-			text = `<!here> :hot_face: The greenhouse is ${temp}F (will check again in an hour)`;
+			text = `<!here> :hot_face: The greenhouse is ${temp}F`;
 			break;
 		case 'cold':
-			text = `<!here> :cold_face: The greenhouse is ${temp}F (will check again in an hour)`;
+			text = `<!here> :cold_face: The greenhouse is ${temp}F`;
 			break;
 		default:
 			text = `<!here> The greenhouse is ${temp}F`;
@@ -92,7 +92,7 @@ async function alertChannel(temp, condition) {
 async function checkThermometer(event) {
 	// the cron triggers every 5 minutes. we want to check if a message was sent five minutes ago.
 	const MS_PER_MINUTE = 60000;
-	const DURATION_IN_MINUTES = 60;
+	const DURATION_IN_MINUTES = 90;
 	const withinTimeframe = new Date(event.scheduledTime - DURATION_IN_MINUTES * MS_PER_MINUTE);
 	const latestMessage = await fetchMessage(withinTimeframe);
 	if (latestMessage && latestMessage.length) {
@@ -107,8 +107,6 @@ async function checkThermometer(event) {
 			const fahrenheit = getFahrenheitFromSensor(result.payload);
 			if (fahrenheit > TOO_HOT) {
 				await alertChannel(fahrenheit, 'hot');
-			} else if (fahrenheit < TOO_COLD) {
-				await alertChannel(fahrenheit, 'cold');
 			} else {
 				console.log('temperature within range');
 			}
