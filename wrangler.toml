@@ -16,3 +16,5 @@ crons = ["*/5 14-04 * * *"]
 
 
 [vars]
+BOT_ID = "B06PX5XM24C"
+BOT_USER = "U06PE5CJP63"
