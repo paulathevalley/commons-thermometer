@@ -32,7 +32,7 @@ function getFahrenheitFromSensor(payload) {
 	47, 81.6F
 	50, 84.1F
 	*/
-	return sensor.state.value + 35;
+	return sensor.state.value;
 }
 
 // Get recent bot history
@@ -86,14 +86,14 @@ async function alertChannel(channelId, temperature, range) {
 	let text;
 	switch (range) {
 		case RANGE.hot:
-			text = `:robot_face: :hot_face: The greenhouse is ${temperature}F`;
+			text = `:robot_face: :hot_face: The greenhouse is ${temperature}`;
 			break;
 		case RANGE.cold:
-			text = `:robot_face: :cold_face: The greenhouse is ${temperature}F`;
+			text = `:robot_face: :cold_face: The greenhouse is ${temperature}`;
 			break;
 		case RANGE.ok:
 		default:
-			text = `:robot_face: The greenhouse is ${temperature}F`;
+			text = `:robot_face: The greenhouse is ${temperature}`;
 			break;
 	}
 	try {
