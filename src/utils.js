@@ -83,6 +83,7 @@ async function alertChannel(channelId, temperature, range) {
 	const token = BOT_USER_OAUTH_TOKEN;
 
 	const client = new SlackAPIClient(token);
+	let text;
 	switch (range) {
 		case RANGE.hot:
 			text = `:robot_face: :hot_face: The greenhouse is ${temperature}F`;
