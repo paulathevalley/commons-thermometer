@@ -7,6 +7,8 @@
 		"url": "git@github.com:paulathevalley/commons-thermometer.git"
 	},
 	"scripts": {
+		"check": "npx prettier --check ./src",
+		"format": "npx prettier --write ./src",
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --test-scheduled --port 54460 --compatibility-flags='nodejs_compat'",
 		"start": "wrangler dev"
