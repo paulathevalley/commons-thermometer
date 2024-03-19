@@ -33,6 +33,8 @@ async function checkThermometer(event) {
 	if (response.ok) {
 		const result = await response.json();
 		const currentTemperature = getFahrenheitFromSensor(result.payload);
+		const sensor = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
+		const currentSensorValue = sensor.state.value;
 		let nextRange = RANGE.ok;
 		if (currentTemperature > TOO_HOT) {
 			nextRange = RANGE.hot;
@@ -55,11 +57,11 @@ async function checkThermometer(event) {
 				console.log('Temperature is in the same range as last sent message. Skipping alertChannel.');
 			} else {
 				// the temperature changed ranges
-				await alertChannel(GREENHOUSE_CHANNEL_ID, currentTemperature, nextRange);
+				await alertChannel(GREENHOUSE_CHANNEL_ID, `${currentTemperature}F (sensor: ${currentSensorValue})`, nextRange);
 			}
 		} else {
 			// Bot has no history
-			await alertChannel(GREENHOUSE_CHANNEL_ID, currentTemperature, nextRange);
+			await alertChannel(GREENHOUSE_CHANNEL_ID, `${currentTemperature}F (sensor: ${currentSensorValue})`, nextRange);
 		}
 	}
 
