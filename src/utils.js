@@ -93,7 +93,7 @@ async function alertChannel(channelId, temperature, range) {
 			break;
 		case RANGE.ok:
 		default:
-			text = `:robot_face: The greenhouse is ${temperature}`;
+			text = `:robot_face: :ok: The greenhouse is ${temperature}`;
 			break;
 	}
 	try {
