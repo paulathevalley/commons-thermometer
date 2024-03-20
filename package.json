@@ -11,10 +11,13 @@
 		"format": "npx prettier --write ./src",
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --test-scheduled --port 54460 --compatibility-flags='nodejs_compat'",
-		"start": "wrangler dev"
+		"start": "wrangler dev",
+		"test": "vitest --config vitest.config.js"
 	},
 	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.1.4",
 		"@slack/web-api": "^7.0.2",
+		"vitest": "1.3.0",
 		"wrangler": "^3.0.0"
 	},
 	"dependencies": {
