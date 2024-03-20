@@ -1,8 +1,9 @@
 # commons-thermometer
 
-A thermometer with wifi.
+A thermometer with wifi. An amateur cloudflare setup. A Slackbot named Thermo-bot.
 
-An amateur cloudflare setup.
+<img width="675" alt="thermobot" src="https://github.com/paulathevalley/commons-thermometer/assets/768965/64e0f231-23e3-4059-b5c7-811fb89a5370">
+
 
 ## Local development
 
