@@ -1,27 +1,19 @@
-// TODO: vitest-pool-workers expects es-modules
+// TOFIX: testing expects es-modules
 
-// import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-// import { describe, it, expect } from 'vitest';
-// Could import any other source file/function here
-// import worker from '../src/index.js';
+import { SELF } from 'cloudflare:test';
+import { expect, it } from 'vitest';
+import '../src/'; // Currently required to automatically rerun tests when `main` changes
 
-// const WORKER_URL = 'https://commons-thermometer.paula-lavalle.workers.dev/';
-// describe('Hello World worker', () => {
-// 	it('responds with Hello World!', async () => {
-// 		const request = new Request(WORKER_URL);
-// 		// Create an empty context to pass to `worker.fetch()`
-// 		const ctx = createExecutionContext();
-// 		const response = await worker.fetch(request, env, ctx);
-// 		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-// 		await waitOnExecutionContext(ctx);
-// 		expect(await response.text()).toBe('Hello World!');
-// 	});
-// });
-
-// import { SELF } from 'cloudflare:test';
-// import '../src/index';
-
-// it('dispatches fetch event', async () => {
-// 	const response = await SELF.fetch('https://commons-thermometer.paula-lavalle.workers.dev/');
-// 	expect(await response.text()).toMatchInlineSnapshot();
-// });
+it('dispatches scheduled event', async () => {
+	// `SELF` here points to the worker running in the current isolate.
+	// This gets its handler from the `main` option in `vitest.config.ts`.
+	// Importantly, it uses the exact `import("../src").default` instance we could
+	// import in this file as its handler. Note the `SELF.scheduled()` method
+	// is experimental, and requires the `service_binding_extra_handlers`
+	// compatibility flag to be enabled.
+	const result = await SELF.scheduled({
+		scheduledTime: new Date(1000),
+		cron: '30 * * * *',
+	});
+	expect(result.outcome).toBe('ok');
+});
