@@ -36,10 +36,7 @@ function getFahrenheitFromSensor(payload) {
 }
 
 // Get recent bot history
-async function fetchBotHistory(channelId, oldestTime) {
-	// Note: environment variables on Cloudflare are available globally
-	const token = BOT_USER_OAUTH_TOKEN;
-
+async function fetchBotHistory(token, botId, channelId, oldestTime) {
 	const client = new SlackAPIClient(token);
 	let timeToUnixTimestamp;
 	if (oldestTime) {
@@ -53,7 +50,7 @@ async function fetchBotHistory(channelId, oldestTime) {
 			channel: channelId,
 			// In a more realistic app, you may store ts data in a db
 			// latest: ts,
-			bot_id: BOT_ID,
+			bot_id: botId,
 			// include all metadata
 			include_all_metadata: true,
 			// Only messages after this Unix timestamp will be included in results.
@@ -64,7 +61,7 @@ async function fetchBotHistory(channelId, oldestTime) {
 		});
 
 		const history = result.messages;
-		const botHistory = history.filter((msg) => msg.bot_id === BOT_ID && msg.text.includes(':robot_face:'));
+		const botHistory = history.filter((msg) => msg.bot_id === botId && msg.text.includes(':robot_face:'));
 		return botHistory;
 	} catch (error) {
 		console.error(error);
@@ -78,10 +75,7 @@ const RANGE = {
 };
 
 // Post a message to the channel
-async function alertChannel(channelId, temperature, range) {
-	// Note: environment variables on Cloudflare are available globally
-	const token = BOT_USER_OAUTH_TOKEN;
-
+async function alertChannel(token, channelId, temperature, range) {
 	const client = new SlackAPIClient(token);
 	let text;
 	switch (range) {

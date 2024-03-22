@@ -8,26 +8,23 @@ let GREENHOUSE_CHANNEL_ID = 'C06Q387FJ4A'; // #production
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
 
-// Using Service Worker syntax
-// more: https://developers.cloudflare.com/workers/reference/migrate-to-module-workers/
-addEventListener('fetch', (event) => {
-	event.respondWith(slackWebhookHandler(event.request));
-});
+export default {
+	fetch(request, env, ctx) {
+		// environment variables are no longer in the global scope
+		// they are in env, ie. env.GOVEE_API_KEY
+		return slackWebhookHandler(request, env);
+	},
 
-addEventListener('scheduled', (event) => {
-	event.waitUntil(checkThermometer(event));
-});
-
-// const MS_PER_MINUTE = 60000;
-// const DURATION_IN_MINUTES = 90;
-// the cron triggers every 5 minutes. we want to check if a message was sent X minutes ago.
-// const recentTimeframe = new Date(event.scheduledTime - DURATION_IN_MINUTES * MS_PER_MINUTE);
+	async scheduled(event, env, ctx) {
+		ctx.waitUntil(checkThermometer(event, env));
+	},
+};
 
 // The scheduled handler is invoked at the interval set in our wrangler.toml's
 // [[triggers]] configuration.
-async function checkThermometer(event) {
-	const botHistory = await fetchBotHistory(GREENHOUSE_CHANNEL_ID);
-	const response = await getThermometer(GOVEE_API_KEY);
+async function checkThermometer(event, env) {
+	const botHistory = await fetchBotHistory(env.BOT_USER_OAUTH_TOKEN, env.BOT_ID, GREENHOUSE_CHANNEL_ID);
+	const response = await getThermometer(env.GOVEE_API_KEY);
 	let wasSuccessful = response.ok ? 'success' : 'fail';
 
 	if (response.ok) {
@@ -56,12 +53,30 @@ async function checkThermometer(event) {
 				// the temperature did not change in range, so skip posting a message
 				console.log('Temperature is in the same range as last sent message. Skipping alertChannel.');
 			} else {
-				// the temperature changed ranges
-				await alertChannel(GREENHOUSE_CHANNEL_ID, `${currentTemperature}F (sensor: ${currentSensorValue})`, nextRange);
+				if (env.ENVIRONMENT === 'development') {
+					console.log('alert channel', `${currentTemperature}F (sensor: ${currentSensorValue})`);
+				} else {
+					// the temperature changed ranges
+					await alertChannel(
+						env.BOT_USER_OAUTH_TOKEN,
+						GREENHOUSE_CHANNEL_ID,
+						`${currentTemperature}F (sensor: ${currentSensorValue})`,
+						nextRange
+					);
+				}
 			}
 		} else {
 			// Bot has no history
-			await alertChannel(GREENHOUSE_CHANNEL_ID, `${currentTemperature}F (sensor: ${currentSensorValue})`, nextRange);
+			if (env.ENVIRONMENT === 'development') {
+				console.log('bot has no history, alert channel', `${currentTemperature}F (sensor: ${currentSensorValue})`);
+			} else {
+				await alertChannel(
+					env.BOT_USER_OAUTH_TOKEN,
+					GREENHOUSE_CHANNEL_ID,
+					`${currentTemperature}F (sensor: ${currentSensorValue})`,
+					nextRange
+				);
+			}
 		}
 	}
 
@@ -136,7 +151,7 @@ function slackResponse(text) {
  * webhook and generates a response.
  * @param {Request} request
  */
-async function slackWebhookHandler(request) {
+async function slackWebhookHandler(request, env) {
 	// As per: https://api.slack.com/slash-commands
 	// - Slash commands are outgoing webhooks (POST requests)
 	// - Slack authenticates via a verification token.
@@ -150,7 +165,7 @@ async function slackWebhookHandler(request) {
 		let formData = await request.formData();
 
 		// validate that the webhook is coming from Slack itself
-		if (formData.get('token') !== SLACK_TOKEN) {
+		if (formData.get('token') !== env.SLACK_TOKEN) {
 			return simpleResponse(403, 'invalid Slack verification token');
 		}
 
@@ -160,7 +175,7 @@ async function slackWebhookHandler(request) {
 		switch (parsed.msg) {
 			case 'temperature':
 			case 'temp':
-				const response = await getThermometer(GOVEE_API_KEY);
+				const response = await getThermometer(env.GOVEE_API_KEY);
 				if (response.ok) {
 					const result = await response.json();
 					const sensor = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
