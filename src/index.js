@@ -185,7 +185,7 @@ async function slackWebhookHandler(request, env) {
 				if (response.ok) {
 					const result = await response.json();
 					const sensor = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
-					const fahrenheit = getFahrenheitFromSensor(result.payload).toFixed(0);
+					const fahrenheit = getFahrenheitFromSensor(result.payload);
 
 					line = `The greenhouse is currently ${fahrenheit}°F (sensor: ${sensor.state.value})`;
 				} else {

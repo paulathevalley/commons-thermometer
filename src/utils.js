@@ -32,7 +32,7 @@ function getFahrenheitFromSensor(payload) {
 	47, 81.6F
 	50, 84.1F
 	*/
-	return sensor.state.value.toFixed(2);
+	return sensor.state.value.toFixed(0);
 }
 
 // Get recent bot history
