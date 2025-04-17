@@ -180,18 +180,17 @@ async function slackWebhookHandler(request, env) {
 		switch (parsed.msg) {
 			case 'temperature':
 			case 'temp':
+			default:
 				const response = await getThermometer(env.GOVEE_API_KEY);
 				if (response.ok) {
 					const result = await response.json();
 					const sensor = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
-					const fahrenheit = getFahrenheitFromSensor(result.payload);
-					line = `The greenhouse is currently ${fahrenheit}F (sensor says ${sensor.state.value})`;
+					const fahrenheit = getFahrenheitFromSensor(result.payload).toFixed(0);
+
+					line = `The greenhouse is currently ${fahrenheit}°F (sensor: ${sensor.state.value})`;
 				} else {
 					line = `Had trouble connecting to the thermometer...`;
 				}
-				break;
-			default:
-				line = `I don’t recognize this. Try 'temperature'.`;
 				break;
 		}
 		return slackResponse(line);
