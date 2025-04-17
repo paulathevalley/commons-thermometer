@@ -10,7 +10,7 @@ it('dispatches fetch event', async () => {
 
 it('dispatches fetch event for slash command', async () => {
 	const formData = new FormData();
-	formData.set('text', 'temperature');
+	formData.set('text', '');
 	formData.set('token', env.SLACK_TOKEN);
 
 	const request = new Request('http://localhost:54460', {
