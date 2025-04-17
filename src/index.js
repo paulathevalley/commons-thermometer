@@ -5,6 +5,7 @@ let TOO_HOT = 85;
 let TOO_COLD = 40;
 let GREENHOUSE_CHANNEL_ID = 'C06Q387FJ4A'; // #production
 // let GREENHOUSE_CHANNEL_ID = 'C054JVDKQJE'; // debugging— #freethecanoe
+const PAUSE = true;
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
 
@@ -57,12 +58,14 @@ async function checkThermometer(event, env) {
 					console.log('alert channel', `${currentTemperature}F (sensor: ${currentSensorValue})`);
 				} else {
 					// the temperature changed ranges
-					await alertChannel(
-						env.BOT_USER_OAUTH_TOKEN,
-						GREENHOUSE_CHANNEL_ID,
-						`${currentTemperature}F (sensor: ${currentSensorValue})`,
-						nextRange
-					);
+					if (!PAUSE) {
+						await alertChannel(
+							env.BOT_USER_OAUTH_TOKEN,
+							GREENHOUSE_CHANNEL_ID,
+							`${currentTemperature}F (sensor: ${currentSensorValue})`,
+							nextRange
+						);
+					}
 				}
 			}
 		} else {
@@ -70,12 +73,14 @@ async function checkThermometer(event, env) {
 			if (env.ENVIRONMENT === 'development') {
 				console.log('bot has no history, alert channel', `${currentTemperature}F (sensor: ${currentSensorValue})`);
 			} else {
-				await alertChannel(
-					env.BOT_USER_OAUTH_TOKEN,
-					GREENHOUSE_CHANNEL_ID,
-					`${currentTemperature}F (sensor: ${currentSensorValue})`,
-					nextRange
-				);
+				if (!PAUSE) {
+					await alertChannel(
+						env.BOT_USER_OAUTH_TOKEN,
+						GREENHOUSE_CHANNEL_ID,
+						`${currentTemperature}F (sensor: ${currentSensorValue})`,
+						nextRange
+					);
+				}
 			}
 		}
 	}

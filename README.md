@@ -4,7 +4,6 @@ A thermometer with wifi. An amateur cloudflare setup. A Slackbot named Thermo-bo
 
 <img width="675" alt="thermobot" src="https://github.com/paulathevalley/commons-thermometer/assets/768965/64e0f231-23e3-4059-b5c7-811fb89a5370">
 
-
 ## Local development
 
 Create a `.dev.vars` with your secrets including access to Govee, `GOVEE_API_KEY`, and Slack, `SLACK_TOKEN`, `BOT_USER_OAUTH_TOKEN`. A matching encrypted variable should be created for the worker on the Cloudflare dashboard. [Wrangler Environments](https://developers.cloudflare.com/workers/wrangler/environments/)
@@ -26,6 +25,12 @@ curl "http://localhost:8787/__scheduled?cron=*+*+*+*+*"
 References:
 
 - https://developers.cloudflare.com/workers/runtime-apis/handlers/scheduled/
+
+## Deploy
+
+```sh
+npm run deploy
+```
 
 ## Govee API
 
