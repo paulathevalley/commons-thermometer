@@ -13,7 +13,6 @@ export default {
 	fetch(request, env, ctx) {
 		// environment variables are no longer in the global scope
 		// they are in env, ie. env.GOVEE_API_KEY
-		// ctx.waitUntil(checkThermometer(request, env)); // DEBUG locally
 		return slackWebhookHandler(request, env);
 	},
 
@@ -35,6 +34,7 @@ async function checkThermometer(event, env) {
 		// check that device is online
 		const onlineInstance = result.payload.capabilities.find((c) => c.instance === 'online');
 		if (!onlineInstance.state.value) {
+			console.log(result.payload.capabilities);
 			throw new Error('Thermometer offline. Check batteries and wifi.');
 		}
 
@@ -97,7 +97,7 @@ async function checkThermometer(event, env) {
 		timeZone: 'America/Los_Angeles',
 	});
 
-	console.log(`trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${localTime}`);
+	console.log(`cron trigger fired at ${event.cron}: ${wasSuccessful} with local time: ${localTime}`);
 }
 
 /**
@@ -171,6 +171,24 @@ async function slackWebhookHandler(request, env) {
 	// - The webhook payload is provided as POST form data
 
 	if (request.method !== 'POST') {
+		if (env.ENVIRONMENT === 'development') {
+			let line = ``;
+			const response = await getThermometer(env.GOVEE_API_KEY);
+			if (response.ok) {
+				const result = await response.json();
+				const sensor = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
+				const fahrenheit = getFahrenheitFromSensor(result.payload);
+				console.log(result);
+				console.log(result.payload.capabilities);
+				const online = result.payload.capabilities.find((c) => c.instance === 'online');
+				const humidity = result.payload.capabilities.find((c) => c.instance === 'sensorHumidity');
+
+				line = `Currently ${fahrenheit}°F temperature: ${sensor.state.value} online: ${online.state.value} humidity: ${humidity.state.value}`;
+			} else {
+				line = `Had trouble connecting to the thermometer...`;
+			}
+			return simpleResponse(200, line);
+		}
 		return simpleResponse(200, `Hi, I'm ${BOT_NAME}, a Slack bot for the greenhouse thermometer`);
 	}
 
