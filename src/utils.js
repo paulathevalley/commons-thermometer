@@ -32,7 +32,12 @@ function getFahrenheitFromSensor(payload) {
 	47, 81.6F
 	50, 84.1F
 	*/
-	return sensor.state.value.toFixed(0);
+	const value = parseFloat(sensor.state.value);
+	if (!!value) {
+		return value.toFixed(0);
+	} else {
+		throw new Error('Error parsing sensor temperature, received: ', sensor.state.value);
+	}
 }
 
 // Get recent bot history

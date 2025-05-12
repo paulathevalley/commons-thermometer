@@ -12,6 +12,7 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --test-scheduled --port 54460 --compatibility-flags='nodejs_compat'",
 		"start": "wrangler dev",
+		"debug": "wrangler tail",
 		"test": "vitest --config vitest.config.js"
 	},
 	"devDependencies": {
