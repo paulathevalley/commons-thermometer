@@ -13,6 +13,7 @@ export default {
 	fetch(request, env, ctx) {
 		// environment variables are no longer in the global scope
 		// they are in env, ie. env.GOVEE_API_KEY
+		// ctx.waitUntil(checkThermometer(request, env)); // DEBUG locally
 		return slackWebhookHandler(request, env);
 	},
 
@@ -30,6 +31,13 @@ async function checkThermometer(event, env) {
 
 	if (response.ok) {
 		const result = await response.json();
+
+		// check that device is online
+		const onlineInstance = result.payload.capabilities.find((c) => c.instance === 'online');
+		if (!onlineInstance.state.value) {
+			throw new Error('Thermometer offline. Check batteries and wifi.');
+		}
+
 		const currentTemperature = getFahrenheitFromSensor(result.payload);
 		const sensor = result.payload.capabilities.find((c) => c.instance === 'sensorTemperature');
 		const currentSensorValue = sensor.state.value;
@@ -195,6 +203,10 @@ async function slackWebhookHandler(request, env) {
 		}
 		return slackResponse(line);
 	} catch (e) {
-		return simpleResponse(200, `Sorry, I had an issue retrieving anything: ${e}`);
+		try {
+			return slackResponse(`Sorry, I had an issue retrieving anything: ${e}`);
+		} catch (err) {
+			return simpleResponse(200, `Sorry, I had an issue retrieving anything: ${err}`);
+		}
 	}
 }

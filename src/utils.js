@@ -36,7 +36,7 @@ function getFahrenheitFromSensor(payload) {
 	if (!!value) {
 		return value.toFixed(0);
 	} else {
-		throw new Error(`Error parsing sensor temperature, received: ${sensor.state.value}`);
+		throw new Error(`trouble parsing sensor temperature: ${sensor.state.value}`);
 	}
 }
 
