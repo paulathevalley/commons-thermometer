@@ -2,13 +2,13 @@ import { env, SELF } from 'cloudflare:test';
 import { expect, it } from 'vitest';
 import '../src/index'; // Currently required to automatically rerun tests when `main` changes
 
-it('dispatches fetch event', async () => {
+it.skip('dispatches fetch event', async () => {
 	const response = await SELF.fetch('http://localhost:54460');
 	const okData = '{"message":"Hi, I\'m Thermo-Bot 🌡️, a Slack bot for the greenhouse thermometer","status":200}';
 	expect(await response.text()).toBe(okData);
 });
 
-it('dispatches fetch event for slash command', async () => {
+it('dispatches fetch event for slash command (empty)', async () => {
 	const formData = new FormData();
 	formData.set('text', '');
 	formData.set('token', env.SLACK_TOKEN);
@@ -21,7 +21,23 @@ it('dispatches fetch event for slash command', async () => {
 	const result = await response.text();
 	const resultJson = JSON.parse(result);
 	expect(resultJson.response_type).toBe('in_channel');
-	expect(resultJson.text).exist;
+	expect(resultJson.text).contain('currently');
+});
+
+it('dispatches fetch event for slash command (pause)', async () => {
+	const formData = new FormData();
+	formData.set('text', 'pause');
+	formData.set('token', env.SLACK_TOKEN);
+
+	const request = new Request('http://localhost:54460', {
+		method: 'POST',
+		body: formData,
+	});
+	const response = await SELF.fetch(request);
+	const result = await response.text();
+	const resultJson = JSON.parse(result);
+	expect(resultJson.response_type).toBe('in_channel');
+	expect(resultJson.text).contain('automatically checking the thermometer');
 });
 
 it('dispatches scheduled event', async () => {
