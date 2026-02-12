@@ -16,7 +16,7 @@ const post = async (temperature) => {
 		// const response = await getThermometer(apiKey);
 		// let wasSuccessful = response.ok ? 'success' : 'fail';
 
-		const renderTemp = temperature ? `${temperature}F` : `too hot`;
+		const renderTemp = temperature ? `${temperature}°F` : `too hot`;
 
 		// Post a message to the channel, and await the result.
 		// Find more arguments and details of the response: https://api.slack.com/methods/chat.postMessage

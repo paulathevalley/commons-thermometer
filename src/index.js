@@ -5,7 +5,7 @@ let TOO_HOT = 90;
 let TOO_COLD = 40;
 let GREENHOUSE_CHANNEL_ID = 'C06Q387FJ4A'; // #production
 // let GREENHOUSE_CHANNEL_ID = 'C054JVDKQJE'; // debugging— #freethecanoe
-const PAUSE = false;
+const PAUSE = true;
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
 
@@ -71,7 +71,7 @@ async function checkThermometer(event, env) {
 							env.BOT_USER_OAUTH_TOKEN,
 							GREENHOUSE_CHANNEL_ID,
 							`${currentTemperature}F (sensor: ${currentSensorValue})`,
-							nextRange
+							nextRange,
 						);
 					}
 				}
@@ -86,7 +86,7 @@ async function checkThermometer(event, env) {
 						env.BOT_USER_OAUTH_TOKEN,
 						GREENHOUSE_CHANNEL_ID,
 						`${currentTemperature}F (sensor: ${currentSensorValue})`,
-						nextRange
+						nextRange,
 					);
 				}
 			}
@@ -204,6 +204,13 @@ async function slackWebhookHandler(request, env) {
 		let line = ``;
 
 		switch (parsed.msg) {
+			case 'pause':
+				if (PAUSE) {
+					line = `Yes, I have paused automatically checking the thermometer. You can still type 'temp' to ask for the current temperature.`;
+				} else {
+					line = `I am automatically checking the thermometer. I will alert you when the temperature goes above ${TOO_HOT} or below ${TOO_COLD}.`;
+				}
+				break;
 			case 'temperature':
 			case 'temp':
 			default:
@@ -215,7 +222,7 @@ async function slackWebhookHandler(request, env) {
 
 					line = `The greenhouse is currently ${fahrenheit}°F (sensor: ${sensor.state.value})`;
 				} else {
-					line = `Had trouble connecting to the thermometer...`;
+					line = `I had trouble connecting to the thermometer.`;
 				}
 				break;
 		}
