@@ -5,7 +5,7 @@ let TOO_HOT = 90;
 let TOO_COLD = 40;
 let GREENHOUSE_CHANNEL_ID = 'C06Q387FJ4A'; // #production
 // let GREENHOUSE_CHANNEL_ID = 'C054JVDKQJE'; // debugging— #freethecanoe
-const PAUSE = true;
+const PAUSE = false;
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
 
