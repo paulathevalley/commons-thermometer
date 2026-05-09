@@ -5,6 +5,7 @@ let TOO_HOT = 90;
 let TOO_COLD = 40;
 let GREENHOUSE_CHANNEL_ID = 'C06Q387FJ4A'; // #production
 // let GREENHOUSE_CHANNEL_ID = 'C054JVDKQJE'; // debugging— #freethecanoe
+// const toBoolean = (str) => (str === 'true' ? true : false);
 const PAUSE = false;
 
 let jsonHeaders = new Headers([['Content-Type', 'application/json']]);
@@ -204,9 +205,9 @@ async function slackWebhookHandler(request, env) {
 		let line = ``;
 
 		switch (parsed.msg) {
-			case 'pause':
+			case 'status':
 				if (PAUSE) {
-					line = `Yes, I have paused automatically checking the thermometer. You can still type 'temp' to ask for the current temperature.`;
+					line = `I have paused automatically checking the thermometer. You can still type 'temp' to ask for the current temperature.`;
 				} else {
 					line = `I am automatically checking the thermometer. I will alert you when the temperature goes above ${TOO_HOT} or below ${TOO_COLD}.`;
 				}
